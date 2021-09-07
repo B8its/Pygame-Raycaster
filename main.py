@@ -8,7 +8,7 @@ import math
  
  
  
-screen = pygame.display.set_mode((1002,500)) #Setting the display size, along with some extra space for an extra window.
+screen = pygame.display.set_mode((500,500), flags = pygame.SCALED) #Setting the display size, along with some extra space for an extra window.
  
 class lvl:# A class for managin the levels1
  
@@ -54,12 +54,12 @@ class plan: #Class for managing most of the 2d aspects.
                     pygame.draw.rect(screen, (255,0,0), (x*20+502, y*20, 20,20))
                 
                         
-class play: #class for the olayer.
+class play: #class for the player.
  
     def __init__(self): #Variables needed for the player. Will have to chnage the y value to z when finished.
         self.x = 550
         self.y = 50
-        self.angle = 30
+        self.angle = 90
         self.fov = 70
         self.anglereset = False
  
@@ -69,9 +69,13 @@ class play: #class for the olayer.
         pygame.draw.circle(screen, (0,255,0), (self.x, self.y), 5)
  
     def movement(self): #All the if statements for doing the movements for the player. Will use it for managing some of the player variables.
- 
+        pygame.mouse.set_visible(False)
+        
+        pygame.mouse.set_pos((250,250))
+        mousex = pygame.mouse.get_pos()[0]-250
+        #pygame.mouse.set_pos((250,250))
         key = pygame.key.get_pressed()
- 
+        self.angle += mousex/10
         if key[pygame.K_w] :
             self.y -=2
         if key[pygame.K_q]:
@@ -89,7 +93,75 @@ class play: #class for the olayer.
         elif self.angle <= 0:
             self.angle = 360
  
- 
+    def DirectionalMovement(self):
+        pygame.mouse.set_visible(False)
+        mousex = 0
+        pygame.mouse.set_pos((250,250))
+        mousex = pygame.mouse.get_pos()[0]-250
+        pygame.mouse.set_pos((250,250))
+        self.angle+=mousex/10
+        key = pygame.key.get_pressed()
+        Hdist = 0
+        if key[pygame.K_w]:
+            Hdist = 2
+            if self.angle <= 180:
+                Xdist = math.cos(numpy.radians(self.angle-90))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle-90))*Hdist
+                self.x+=Xdist
+                self.y+=Ydist
+            elif self.angle > 180:
+                Xdist = math.cos(numpy.radians(self.angle-270))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle-270))*Hdist
+                self.x-=Xdist
+                self.y-=Ydist
+
+        if key[pygame.K_s]:
+            Hdist = 2
+            if self.angle <= 180:
+                Xdist = math.cos(numpy.radians(self.angle-90))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle-90))*Hdist
+                self.x-=Xdist
+                self.y-=Ydist
+            elif self.angle > 180:
+                Xdist = math.cos(numpy.radians(self.angle-270))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle-270))*Hdist
+                self.x+=Xdist
+                self.y+=Ydist
+        
+        if key[pygame.K_d]:
+            Hdist = 2
+            if self.angle <= 180:
+                Xdist = math.cos(numpy.radians(self.angle))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle))*Hdist
+                self.x+=Xdist
+                self.y+=Ydist
+            elif self.angle > 180:
+                Xdist = math.cos(numpy.radians(self.angle-180))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle-180))*Hdist
+                self.x-=Xdist
+                self.y-=Ydist
+
+        if key[pygame.K_a]:
+            Hdist = 2
+            if self.angle <= 180:
+                Xdist = math.cos(numpy.radians(self.angle))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle))*Hdist
+                self.x-=Xdist
+                self.y-=Ydist
+            elif self.angle > 180:
+                Xdist = math.cos(numpy.radians(self.angle-180))*Hdist
+                Ydist = math.sin(numpy.radians(self.angle-180))*Hdist
+                self.x+=Xdist
+                self.y+=Ydist
+
+        if key[pygame.K_e]:
+            self.angle+=2
+        if key[pygame.K_q]:
+            self.angle-=2
+        if self.angle >= 360:
+            self.angle = 0
+        elif self.angle <= 0:
+            self.angle = 360
     def raycastx(self, lvl): # Casts a ray using the adjacent as the x line on the 2d grid. 
         global screen
         gposx = (self.x-502)/20
@@ -207,12 +279,56 @@ class play: #class for the olayer.
                 except:
                     pass
   
- 
+    def drawOpLine(self):
+        global screen
+        Hdist = 25
+
+        BXvalue = math.cos(numpy.radians(self.angle))*int(((Hdist-1)/2))
+        BYvalue = math.sin(numpy.radians(self.angle))*int(((Hdist-1)/2))
+        if self.angle <=180:
+            Offsetx = math.cos(numpy.radians(self.angle-90))*15
+            Offsety = math.sin(numpy.radians(self.angle-90))*15
+            x = self.x+Offsetx
+            y = self.y+Offsety
+        elif self.angle >180:
+            Offsetx = math.cos(numpy.radians(self.angle-270))*15
+            Offsety = math.sin(numpy.radians(self.angle-270))*15
+            x = self.x-Offsetx
+            y = self.y-Offsety
+        pygame.draw.line(screen, (255,0,255), (x-BXvalue, y-BYvalue), (x+BXvalue, y+BYvalue))
+    
+    def lineLength(self):
+        global screen
+        length = 0
+        for angle in range(int(self.angle-self.fov/2), int(self.angle+self.fov/2)):
+            a = 0
+            if angle < 0:
+                ang = 360+angle
+            else:
+                ang = angle
+            if ang >360:
+                ang = ang-360
+
+            if ang > self.angle:
+                tang = ang-self.angle
+            else:
+                tang = self.angle-ang
+            
+            length = 15/math.cos(numpy.radians(tang))
+            # if tang == 0:
+            #     print(length)
+
+                
+        #print(length)   
+
     def raycast(self, lvl):
         global screen
+        
         length = 500
         xtdist = 1000000**2
         ytdist = 1000000**2
+        bdist = 10000000
+        adist  = 10000000
         gposx = (self.x-502)/20
         gposy = (self.y)/20
         gx = (self.x-502)-(int(gposx)*20)
@@ -224,6 +340,9 @@ class play: #class for the olayer.
         xpoint = 0
         ypoint = 0
         ang = 0
+
+        Hdist = 25
+
         for angle in range(int(self.angle-self.fov/2), int(self.angle+self.fov/2)) :
             gx = (self.x-502)-(int(gposx)*20)
             gy = (self.y) - (int(gposy)*20)
@@ -234,7 +353,12 @@ class play: #class for the olayer.
             if ang >360:
                 ang = ang-360
  
- 
+            if ang > self.angle:
+                tang = ang-self.angle
+            else:
+                tang = self.angle-ang
+            
+            dist = 200/math.cos(numpy.radians(tang))
             if ang == 0 or ang == 360: # X axis wall detection
                 None
             elif ang >180:
@@ -254,6 +378,7 @@ class play: #class for the olayer.
                     try:
                         if lvl[gpoint[0]-1, gpoint[1]] >0:
                             xtdist = math.sqrt(xdist**2+ydist**2)
+                            adist  = math.cos(numpy.radians(tang))*xtdist
                             break
                     except:
                         pass
@@ -278,6 +403,7 @@ class play: #class for the olayer.
                     try:
                         if lvl[gpoint[0], gpoint[1]] >0:
                             xtdist = math.sqrt(xdist**2+ydist**2)
+                            adist = math.cos(numpy.radians(tang))*xtdist
                             break 
                     except:
                         pass
@@ -304,7 +430,7 @@ class play: #class for the olayer.
                         if lvl[gpoint[0], gpoint[1]-1] >0:
                             
                             ytdist = math.sqrt(xdist**2+ydist**2)
- 
+                            bdist = math.cos(numpy.radians(tang))*ytdist
                             break
                     except:
                         pass
@@ -329,7 +455,8 @@ class play: #class for the olayer.
                     try:
                         if lvl[gpoint[0], gpoint[1]] >0:
                             ytdist = math.sqrt(xdist**2+ydist**2)
-                            break
+                            bdist = math.cos(numpy.radians(tang))*ytdist
+                            break   
                     except:
                         pass
             
@@ -337,20 +464,19 @@ class play: #class for the olayer.
             try:
                 if ang != 0 or ang!=360:
                     if xtdist > ytdist:
-                        length = 500-(ytdist/800*500)
-                        pygame.draw.line(screen, (255,255,255), (int(width*trueI), int(250-length/2)), (int(width*trueI), int(250+length/2)), width = int(width))
+                        length = 500-(bdist/1000*400)
+                        pygame.draw.line(screen, (255,100,100), (int(width*trueI), int(250-length/2)), (int(width*trueI), int(250+length/2)), width = int(width))
                         #print("y")
  
                         pygame.draw.line(screen, (255,255,0), [self.x, self.y], ypoint)
                     else:
-                        length = 500-(xtdist/800*500)
+                        length = 500-(adist/1000*400)
                         #print("n")
-                        pygame.draw.line(screen, (200,200,200), (int(width*trueI), int(250-length/2)), (int(width*trueI), int(250+length/2)), width = int(width))
+                        pygame.draw.line(screen, (255,00,00), (int(width*trueI), int(250-length/2)), (int(width*trueI), int(250+length/2)), width = int(width))
                         pygame.draw.line(screen, (255,255,0), [self.x,self.y], xpoint)
             except:
                 pass
             trueI+=1
-        print(length)
  
         #print(self.angle)
  
@@ -366,6 +492,7 @@ class play: #class for the olayer.
 def main():
     clock = pygame.time.Clock()
     global screen
+    #ygame.display.toggle_fullscreen()
     plane = plan()
     levels = lvl()
     player = play()
@@ -379,14 +506,18 @@ def main():
             if event.type == pygame.QUIT:
                 playing = False
  
-        player.movement()
-        screen.fill((0,0,0))
+        player.DirectionalMovement()
+        screen.fill((100,100,100))
+        pygame.draw.rect(screen, (100,100,255), (0,0,500,250))
         pygame.draw.line(screen, (255,255,255), (501, 0), (501,500), width=3)
         player.drawGridin(levels.lvl1)
         player.drawGridPlayer()
         plane.drawgrid()
+        #player.movement()
         plane.drawblock(levels.lvl1)
         player.raycast(levels.lvl1)
+        player.drawOpLine()
+        player.lineLength()
         #player.raycasty(levels.lvl1)
         pygame.display.update()
         pygame.display.flip()
