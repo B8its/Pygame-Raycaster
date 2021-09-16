@@ -8,7 +8,7 @@ import math
 
 
 
-screen = pygame.display.set_mode((500,500), flags = pygame.SCALED) #Setting the display size, along with some extra space for an extra window.
+screen = pygame.display.set_mode((1002,500), flags = pygame.SCALED) #Setting the display size, along with some extra space for an extra window.
 
 class lvl:# A class for managin the levels1
 
@@ -59,7 +59,7 @@ class play: #class for the player.
     def __init__(self): #Variables needed for the player. Will have to chnage the y value to z when finished.
         self.x = 550
         self.y = 50
-        self.angle = 90
+        self.angle = 270
         self.fov = 70
         self.anglereset = False
 
@@ -69,13 +69,13 @@ class play: #class for the player.
         pygame.draw.circle(screen, (0,255,0), (self.x, self.y), 5)
 
     def movement(self): #All the if statements for doing the movements for the player. Will use it for managing some of the player variables.
-        pygame.mouse.set_visible(False)
+        # pygame.mouse.set_visible(False)
         
-        pygame.mouse.set_pos((250,250))
-        mousex = pygame.mouse.get_pos()[0]-250
-        #pygame.mouse.set_pos((250,250))
+        # pygame.mouse.set_pos((250,250))
+        # mousex = pygame.mouse.get_pos()[0]-250
+        # #pygame.mouse.set_pos((250,250))
         key = pygame.key.get_pressed()
-        self.angle += mousex/10
+        # self.angle += mousex/10
         if key[pygame.K_w] :
             self.y -=2
         if key[pygame.K_q]:
@@ -163,27 +163,30 @@ class play: #class for the player.
         elif self.angle <= 0:
             self.angle = 360
 
-    def raycast(self, lvl):
+    def raycaster(self, lvl):
         global screen
-        
-        length = 500
-        xtdist = 1000000**2
-        ytdist = 1000000**2
+        xtdist = 10000
+        ytdist = 10000
         bdist = 10000000
         adist  = 10000000
         gposx = (self.x-502)/20
         gposy = (self.y)/20
+        tpast = 0
         gx = (self.x-502)-(int(gposx)*20)
         gy = (self.y) - (int(gposy)*20)
         width = int(500/self.fov)
         trueI = 0
         gpo = int(gposx)
         gpb = int(gposy)
+        last = [[0,0], 0, 'n']
+        past = [[0,0],0,'n']
+
+        px = [[0,0],0 ,'n']
+        py = [[0,0],0 ,'n']
         xpoint = 0
         ypoint = 0
         ang = 0
-        Hdist = 25
-
+        
         for angle in range(int(self.angle-self.fov/2), int(self.angle+self.fov/2)) :
             gx = (self.x-502)-(int(gposx)*20)
             gy = (self.y) - (int(gposy)*20)
@@ -315,34 +318,80 @@ class play: #class for the player.
                         ytdist = 10000000
                         pass
             
+ 
+            
+            px = [[trueI+1, 500-(adist/800*500)], xtdist, 'x']
+            py = [[trueI+1, 500-(bdist/800*500)], ytdist, 'y']      
+            tpast = past
+            if ang !=0 and ang != 360:
+                #print('a')
+                if (px[1] > py[1] and xtdist > ytdist)== True:
+                    pygame.draw.line(screen, (255,255,0), [self.x, self.y], ypoint)
+                    #print("a")
+                    if last[1] == 0:
+                    
+                        past = py
+                        last =[[trueI, 500-(bdist/800*500)], ytdist, 'y']  
 
-            try:
-                if ang != 0 or ang!=360:
-                    if xtdist > ytdist:
-                        length = 500-((bdist-dist)/800*500)
-                        pygame.draw.line(screen, (255,255,255), (int(width*trueI+width), int(250-length/2)), (int(width*trueI+width), int(250+length/2)), width = int(width))
-                        #print("y")
-                        if ang == self.angle:
-                            pygame.draw.line(screen, (0,0,0), [self.x, self.y], ypoint)
-                           
-                        else:
-                            pygame.draw.line(screen, (255,255,0), [self.x, self.y], ypoint)
+                    if last[2] == 'y' and  past[2] == 'y' and abs(past[1]-ytdist) <40:
+                    
+                        past = py
+                    
+                        
                     else:
-                        length = 500-((adist-dist)/800*500)
-                        #print("n")
-                        pygame.draw.line(screen, (200,200,200), (int(width*trueI+width), int(250-length/2)), (int(width*trueI+width), int(250+length/2)), width = int(width))
-                        if ang == self.angle:
-                            pygame.draw.line(screen, (0,0,0), [self.x, self.y], xpoint)
-                            
-                        else:
-                            pygame.draw.line(screen, (255,255,0), [self.x,self.y], xpoint)
-            except:
-                pass
+                        
+                        pygame.draw.polygon(screen, (255,255,255), (
+                            (last[0][0]*width, 250+last[0][1]/2),
+                            (last[0][0]*width, 250-last[0][1]/2),
+                            (past[0][0]*width, 250-past[0][1]/2),
+                            (past[0][0]*width, 250+past[0][1]/2)
+                        ))
+                        last = [[trueI, 500-(bdist/800*500)], ytdist, 'y']  
+                        past = py
+                else:
+
+                    pygame.draw.line(screen, (255,255,255), [self.x, self.y], xpoint)
+                    #print("b'")
+                    if last[2] == 'n' or last[1] == 10001:
+                        
+                        past = px 
+                        last = [[trueI, 500-(adist/800*500)], xtdist, 'x']  
+                    if last[2] == 'x' and past[2] == 'x' and abs(past[1]-xtdist) <40:
+
+                        past = px   
+                    
+                    else:
+                        #print("c")
+                        pygame.draw.polygon(screen, (200,200,200), (
+                            (last[0][0]*width, 250+last[0][1]/2),
+                            (last[0][0]*width, 250-last[0][1]/2),
+                            (past[0][0]*width, 250-past[0][1]/2),
+                            (past[0][0]*width, 250+past[0][1]/2)
+                        ))
+                        past = px
+                        last =   [[trueI, 500-(adist/800*500)], xtdist, 'x']  
+                   # print(last, past, xtdist, ytdist)
+                    # print(px,py, self.angle)
+
+            
             trueI+=1
-
-        #print(xtdist, xpoint, ytdist, ypoint, ydist)
-        #print(self.angle)
-
+        print(past, tpast, xtdist, ytdist)
+        if last[2] == 'y':
+    
+            pygame.draw.polygon(screen, (200,200,200), (
+                (last[0][0]*width, 250+last[0][1]/2),
+                (last[0][0]*width, 250-last[0][1]/2),
+                (past[0][0]*width, 250-past[0][1]/2),
+                (past[0][0]*width, 250+past[0][1]/2)
+            ))
+        else:
+                
+            pygame.draw.polygon(screen, (255,255,255), (
+                (last[0][0]*width, 250+last[0][1]/2),
+                (last[0][0]*width, 250-last[0][1]/2),
+                (past[0][0]*width, 250-past[0][1]/2),
+                (past[0][0]*width, 250+past[0][1]/2)
+            ))
 
     def drawGridin(self, lvl): #highlights which grid the player is in.
         global screen
@@ -369,16 +418,17 @@ def main():
             if event.type == pygame.QUIT:
                 playing = False
 
-        player.DirectionalMovement()
+        #player.DirectionalMovement()
         screen.fill((100,100,100))
         pygame.draw.rect(screen, (100,100,255), (0,0,500,250))
         pygame.draw.line(screen, (255,255,255), (501, 0), (501,500), width=3)
         player.drawGridin(levels.lvl1)
         player.drawGridPlayer()
         plane.drawgrid()
-        #player.movement()
+        player.movement()
         plane.drawblock(levels.lvl1)
-        player.raycast(levels.lvl1)
+        #player.raycast(levels.lvl1)
+        player.raycaster(levels.lvl1)
 
         pygame.display.update()
         pygame.display.flip()
@@ -387,7 +437,3 @@ def main():
 
 
 main()
-
-
-
-
