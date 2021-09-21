@@ -178,8 +178,10 @@ class play: #class for the player.
         trueI = 0
         gpo = int(gposx)
         gpb = int(gposy)
-        last = [[0,0], 0, 'n']
-        past = [[0,0],0,'n']
+        gypoint = []
+        gxpoint = []
+        last = [[0,0], 0, 'n', []]
+        past = [[0,0],0,'n',[]]
 
         px = [[0,0],0 ,'n']
         py = [[0,0],0 ,'n']
@@ -215,13 +217,13 @@ class play: #class for the player.
                     ydist = (math.tan(numpy.radians(270-ang))*((i*20)+gx))
                     xpoint = [(((gpo)*20)+502)-(i*20), self.y+ydist]
 
-                    gpoint = [int((xpoint[0]-502)/20), int(xpoint[1]/20)]
+                    gxpoint = [int((xpoint[0]-502)/20), int(xpoint[1]/20)]
                     #pygame.draw.line(screen, (0,0,255), [(((gpo)*20)+502)-(i*20),self.y], point)
                     
                     
                     try:
                         #pygame.draw.line(screen, (0,255,0), [self.x, self.y], xpoint) 
-                        if lvl[gpoint[0]-1, gpoint[1]] >0:
+                        if lvl[gxpoint[0]-1, gxpoint[1]] >0:
 
                             xtdist = math.sqrt((xdist)**2+(ydist)**2)
                             adist  = math.cos(numpy.radians(tang))*xtdist
@@ -244,14 +246,14 @@ class play: #class for the player.
                     ydist = math.tan(numpy.radians(90-ang))*((i*20)+gx)
                     xpoint = [f*20+502, self.y-ydist]
                     
-                    gpoint = [int((xpoint[0]-502)/20), int(xpoint[1]/20)]
+                    gxpoint = [int((xpoint[0]-502)/20), int(xpoint[1]/20)]
 
                     #pygame.draw.line(screen, (0,0,255), [f*20+502,self.y], point)
                      
                     
                     try:
                         #pygame.draw.line(screen, (0,255,0), [self.x, self.y], xpoint) 
-                        if lvl[gpoint[0], gpoint[1]] >0:
+                        if lvl[gxpoint[0], gxpoint[1]] >0:
 
                             xtdist = math.sqrt((xdist)**2+(ydist)**2)
                             adist = math.cos(numpy.radians(tang))*xtdist
@@ -275,13 +277,13 @@ class play: #class for the player.
                     ydist = (gy+i*20)
                     ypoint = [self.x+xdist, self.y-ydist]
 
-                    gpoint = [int((ypoint[0]-502)/20), int(ypoint[1]/20)]
+                    gypoint = [int((ypoint[0]-502)/20), int(ypoint[1]/20)]
 
                     
 
                     try: 
                         #pygame.draw.line(screen, (255,255,0), [self.x, self.y], ypoint) 
-                        if lvl[gpoint[0], gpoint[1]-1] >0:
+                        if lvl[gypoint[0], gypoint[1]-1] >0:
                             ytdist  = math.sqrt((xdist)**2+(ydist)**2)
                             bdist = math.cos(numpy.radians(tang))*ytdist
 
@@ -304,12 +306,12 @@ class play: #class for the player.
                     
                     ypoint = [self.x-xdist, f*20]
                     
-                    gpoint = [int((ypoint[0]-502)/20), int(ypoint[1]/20)]
+                    gypoint = [int((ypoint[0]-502)/20), int(ypoint[1]/20)]
 
                     
                     try:
                         #pygame.draw.line(screen, (255,255,0), [self.x, self.y], ypoint)
-                        if lvl[gpoint[0], gpoint[1]] >0:
+                        if lvl[gypoint[0], gypoint[1]] >0:
                             ytdist = math.sqrt((xdist)**2+(ydist)**2)
 
                             bdist = math.cos(numpy.radians(tang))*ytdist
@@ -318,10 +320,10 @@ class play: #class for the player.
                         ytdist = 10000000
                         pass
             
- 
             
-            px = [[trueI+1, 500-(adist/800*500)], xtdist, 'x']
-            py = [[trueI+1, 500-(bdist/800*500)], ytdist, 'y']      
+            
+            px = [[trueI+1, 500-(adist/800*500)], xtdist, 'x', gxpoint]
+            py = [[trueI+1, 500-(bdist/800*500)], ytdist, 'y', gypoint]      
             tpast = past
             if ang !=0 and ang != 360:
                 #print('a')
@@ -331,22 +333,38 @@ class play: #class for the player.
                     if last[1] == 0:
                     
                         past = py
-                        last =[[trueI, 500-(bdist/800*500)], ytdist, 'y']  
+                        last =[[trueI, 500-(bdist/800*500)], ytdist, 'y', gypoint]  
 
-                    if last[2] == 'y' and  past[2] == 'y' and abs(past[1]-ytdist) <40:
+                    if last[2] == 'y' and  past[2] == 'y' and  gypoint[1] == last[3][1]:
                     
-                        past = py
+                        past = py 
                     
                         
                     else:
-                        
-                        pygame.draw.polygon(screen, (255,255,255), (
-                            (last[0][0]*width, 250+last[0][1]/2),
-                            (last[0][0]*width, 250-last[0][1]/2),
-                            (past[0][0]*width, 250-past[0][1]/2),
-                            (past[0][0]*width, 250+past[0][1]/2)
-                        ))
-                        last = [[trueI, 500-(bdist/800*500)], ytdist, 'y']  
+                        try:
+                            if abs(last[3][0]-gypoint[0])<=1 and (lvl[gypoint[0], gypoint[1]-1] >= 1 or lvl[gypoint[0], gypoint[1]+1]>=1):
+                                pygame.draw.polygon(screen, (255,255,255), (
+                                    (last[0][0]*width, 250+last[0][1]/2),
+                                    (last[0][0]*width, 250-last[0][1]/2),
+                                    (py[0][0]*width, 250-py[0][1]/2),
+                                    (py[0][0]*width, 250+py[0][1]/2)
+                                ))
+                            else:
+                                pygame.draw.polygon(screen, (255,255,255), (
+                                    (last[0][0]*width, 250+last[0][1]/2),
+                                    (last[0][0]*width, 250-last[0][1]/2),
+                                    (past[0][0]*width, 250-past[0][1]/2),
+                                    (past[0][0]*width, 250+past[0][1]/2)
+                                ))
+                        except:
+                            
+                                pygame.draw.polygon(screen, (255,255,255), (
+                                    (last[0][0]*width, 250+last[0][1]/2),
+                                    (last[0][0]*width, 250-last[0][1]/2),
+                                    (past[0][0]*width, 250-past[0][1]/2),
+                                    (past[0][0]*width, 250+past[0][1]/2)
+                                ))
+                        last = [[trueI, 500-(bdist/800*500)], ytdist, 'y', gypoint]  
                         past = py
                 else:
 
@@ -355,21 +373,39 @@ class play: #class for the player.
                     if last[2] == 'n' or last[1] == 10001:
                         
                         past = px 
-                        last = [[trueI, 500-(adist/800*500)], xtdist, 'x']  
-                    if last[2] == 'x' and past[2] == 'x' and abs(past[1]-xtdist) <40:
+                        last = [[trueI, 500-(adist/800*500)], xtdist, 'x', gxpoint]  
+                    if last[2] == 'x' and past[2] == 'x' and gxpoint[0] == last[3][0]:
 
                         past = px   
                     
                     else:
                         #print("c")
-                        pygame.draw.polygon(screen, (200,200,200), (
-                            (last[0][0]*width, 250+last[0][1]/2),
-                            (last[0][0]*width, 250-last[0][1]/2),
-                            (past[0][0]*width, 250-past[0][1]/2),
-                            (past[0][0]*width, 250+past[0][1]/2)
-                        ))
+                        try:
+                                
+                            if abs(last[3][1]-gxpoint[1])<=1 and (lvl[gxpoint[0]-1, gxpoint[1]] >= 1 or lvl[gxpoint[0]+1, gxpoint[1]]>=1):
+                                pygame.draw.polygon(screen, (200,200,200), (
+                                    (last[0][0]*width, 250+last[0][1]/2),
+                                    (last[0][0]*width, 250-last[0][1]/2),
+                                    (px[0][0]*width, 250-px[0][1]/2),
+                                    (px[0][0]*width, 250+px[0][1]/2)
+                                ))
+                            else:
+                                pygame.draw.polygon(screen, (200,200,200), (
+                                    (last[0][0]*width, 250+last[0][1]/2),
+                                    (last[0][0]*width, 250-last[0][1]/2),
+                                    (past[0][0]*width, 250-past[0][1]/2),
+                                    (past[0][0]*width, 250+past[0][1]/2)
+                                ))
+                        except:
+                                pygame.draw.polygon(screen, (200,200,200), (
+                                    (last[0][0]*width, 250+last[0][1]/2),
+                                    (last[0][0]*width, 250-last[0][1]/2),
+                                    (past[0][0]*width, 250-past[0][1]/2),
+                                    (past[0][0]*width, 250+past[0][1]/2)
+                                ))
+
                         past = px
-                        last =   [[trueI, 500-(adist/800*500)], xtdist, 'x']  
+                        last =   [[trueI, 500-(adist/800*500)], xtdist, 'x', gxpoint]   
                    # print(last, past, xtdist, ytdist)
                     # print(px,py, self.angle)
 
@@ -425,7 +461,7 @@ def main():
         player.drawGridin(levels.lvl1)
         player.drawGridPlayer()
         plane.drawgrid()
-        player.movement()
+        player.DirectionalMovement()
         plane.drawblock(levels.lvl1)
         #player.raycast(levels.lvl1)
         player.raycaster(levels.lvl1)
